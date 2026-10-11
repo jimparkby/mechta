@@ -1,0 +1,697 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Карта «Мечта»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: store till and customer phone on top; below them a lane timeline of what each system sends, steps 1–7 */
+:root {
+  --bg: #eef1ef; --surface: #ffffff; --ink: #1b2420; --muted: #5d6a64; --line: #d5dcd8;
+  --accent: #1f6b52; --accent-ink: #ffffff; --accent-soft: #dcebe4;
+  --danger: #b4362b; --danger-soft: #f7e1de;
+  --receipt: #fbfaf6; --term-bg: #22302a; --term-fg: #e9f2ec; --term-dim: #9fb5aa;
+  --lane-shop: #6a4fb3; --lane-term: #5d6a64; --lane-bank: #2f6390; --lane-mechta: #1f6b52;
+  --f-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --f-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121715; --surface: #1a211e; --ink: #e7ece9; --muted: #9aa8a1; --line: #2c3631;
+  --accent: #4fb48b; --accent-ink: #0d1411; --accent-soft: #1e3a2f;
+  --danger: #ef7a6d; --danger-soft: #3d1f1b;
+  --receipt: #1f2623; --term-bg: #0b0f0d; --term-fg: #d9e8df; --term-dim: #7f978b;
+  --lane-shop: #a993e6; --lane-term: #9aa8a1; --lane-bank: #7fb1df; --lane-mechta: #4fb48b; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121715; --surface: #1a211e; --ink: #e7ece9; --muted: #9aa8a1; --line: #2c3631;
+  --accent: #4fb48b; --accent-ink: #0d1411; --accent-soft: #1e3a2f;
+  --danger: #ef7a6d; --danger-soft: #3d1f1b;
+  --receipt: #1f2623; --term-bg: #0b0f0d; --term-fg: #d9e8df; --term-dim: #7f978b;
+  --lane-shop: #a993e6; --lane-term: #9aa8a1; --lane-bank: #7fb1df; --lane-mechta: #4fb48b; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 48px; display: grid; gap: 24px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(22px, 3.2vw, 30px); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font: 600 17px/1.2 var(--f-display); margin: 0; }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 64ch; }
+.head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mode { font: 12px/1 var(--f-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; }
+.btn { font: 600 14px/1 var(--f-body); border-radius: 10px; padding: 11px 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn:focus-visible, .chip:focus-visible, .seg button:focus-visible, .toggle input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.label { font: 600 11px/1 var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+
+.stage { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+.till { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 16px; min-width: 0; }
+.till-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.chip { text-align: left; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; font-family: var(--f-body); }
+.chip:hover { border-color: var(--accent); }
+.chip b { font-weight: 600; font-size: 14px; }
+.chip span { font: 12px/1.3 var(--f-mono); color: var(--muted); }
+.chip .tag { font-family: var(--f-body); font-size: 11px; color: var(--danger); }
+.till-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 560px) { .till-body { grid-template-columns: minmax(0, 1fr); } }
+
+.receipt { background: var(--receipt); border: 1px dashed var(--line); border-radius: 6px; padding: 14px; font-family: var(--f-mono); font-size: 13px; display: grid; gap: 8px; min-height: 280px; align-content: start; }
+.receipt .rh { text-align: center; color: var(--muted); font-size: 11px; line-height: 1.5; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
+.rows { display: grid; gap: 6px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: baseline; font-variant-numeric: tabular-nums; }
+.row .nm { overflow-wrap: anywhere; }
+.row .mk { font-size: 10px; color: var(--muted); display: block; }
+.row.bad .nm, .row.bad .pr { color: var(--danger); }
+.row button { border: 0; background: none; color: var(--muted); cursor: pointer; font: 14px var(--f-mono); padding: 0 2px; }
+.row button:hover { color: var(--danger); }
+.empty { color: var(--muted); font-size: 12px; }
+.total { border-top: 1px dashed var(--line); padding-top: 8px; display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+.terminal { background: var(--term-bg); color: var(--term-fg); border-radius: 14px; padding: 14px; display: grid; gap: 12px; align-content: start; min-height: 280px; }
+.terminal .label { color: var(--term-dim); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: color-mix(in srgb, var(--term-fg) 8%, transparent); border-radius: 10px; padding: 4px; }
+.seg button { border: 0; border-radius: 7px; padding: 8px 6px; font: 600 12px/1.2 var(--f-body); color: var(--term-dim); background: transparent; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--term-fg); color: var(--term-bg); }
+.screen { border: 1px solid color-mix(in srgb, var(--term-fg) 18%, transparent); border-radius: 8px; padding: 14px; min-height: 118px; display: grid; gap: 6px; align-content: center; text-align: center; }
+.screen .big { font: 700 22px/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
+.screen .sub { font-size: 13px; color: var(--term-dim); }
+.screen.declined { border-color: var(--danger); }
+.screen.declined .big { color: var(--danger); font-size: 18px; }
+.screen.paid .big { color: var(--accent); }
+.pulse { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--term-dim); margin: 0 auto; animation: ring 1s ease-out infinite; }
+@keyframes ring { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.3); opacity: 0; } }
+.term-actions { display: grid; gap: 8px; }
+.terminal .btn:not(.primary) { background: transparent; color: var(--term-fg); border-color: var(--term-dim); }
+
+.phone { justify-self: center; width: 100%; max-width: 360px; background: var(--surface); border: 8px solid var(--ink); border-radius: 38px; padding: 22px 16px 18px; display: grid; gap: 14px; position: relative; }
+.notch { width: 96px; height: 20px; background: var(--ink); border-radius: 0 0 12px 12px; position: absolute; top: -1px; left: 50%; transform: translateX(-50%); }
+.app-top { display: flex; justify-content: space-between; align-items: center; padding-top: 6px; }
+.card { background: var(--accent); color: var(--accent-ink); border-radius: 14px; padding: 14px; display: grid; gap: 14px; }
+.card .n { font: 600 13px var(--f-mono); letter-spacing: .08em; opacity: .85; }
+.card .b { display: flex; justify-content: space-between; align-items: end; }
+.card .b strong { font: 700 15px var(--f-display); }
+.card .b span { font-size: 11px; opacity: .8; }
+.section { display: grid; gap: 8px; }
+.toggle { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; position: relative; }
+.toggle:last-child { border-bottom: 0; }
+.toggle small { display: block; color: var(--muted); font-size: 12px; }
+.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.track { flex: none; width: 42px; height: 24px; border-radius: 12px; background: var(--line); position: relative; transition: background .2s; }
+.track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); transition: transform .2s; }
+.toggle input:checked + .track { background: var(--danger); }
+.toggle input:checked + .track::after { transform: translateX(18px); }
+.piggy { background: var(--accent-soft); border-radius: 14px; padding: 14px; display: grid; gap: 8px; }
+.piggy .sum { font: 700 26px/1 var(--f-display); font-variant-numeric: tabular-nums; color: var(--accent); }
+.bar { height: 8px; border-radius: 4px; background: var(--surface); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .6s ease; }
+.goal { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.hist { display: grid; gap: 6px; font-size: 13px; }
+.hist div { display: flex; justify-content: space-between; gap: 8px; }
+.hist .p { color: var(--accent); font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.toast { position: absolute; left: 10px; right: 10px; top: 30px; background: var(--ink); color: var(--surface); border-radius: 14px; padding: 12px 14px; font-size: 13px; box-shadow: 0 10px 30px rgb(0 0 0 / .25); transform: translateY(-12px); opacity: 0; transition: all .3s ease; pointer-events: none; }
+.toast.show { transform: none; opacity: 1; }
+.toast b { display: block; margin-bottom: 2px; }
+
+/* Timeline */
+.inside { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 14px; }
+.inside-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.inside-head p { margin: 0; color: var(--muted); font-size: 13px; max-width: 70ch; }
+.lanes { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--muted); }
+.lanes span { display: inline-flex; align-items: center; gap: 6px; }
+.lanes i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.step:first-child { border-top: 0; }
+.step .num { font: 700 14px/28px var(--f-display); width: 28px; height: 28px; text-align: center; border-radius: 8px; background: var(--bg); color: var(--muted); }
+.step.no .num { background: var(--danger-soft); color: var(--danger); }
+.step.ok .num { background: var(--accent-soft); color: var(--accent); }
+.step.skip { opacity: .6; }
+.route { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+.who { padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.who.shop { color: var(--lane-shop); } .who.term { color: var(--lane-term); } .who.bank { color: var(--lane-bank); } .who.mechta { color: var(--lane-mechta); }
+.arrow { color: var(--muted); }
+.what { margin: 4px 0 0; }
+.step.no .what { color: var(--danger); font-weight: 600; }
+.step.ok .what { color: var(--accent); font-weight: 600; }
+.payload { margin: 6px 0 0; font: 11.5px/1.5 var(--f-mono); color: var(--muted); background: var(--bg); border-radius: 6px; padding: 6px 8px; overflow-x: auto; white-space: pre; }
+.placeholder { color: var(--muted); font-size: 14px; padding: 6px 0; }
+
+.note { color: var(--muted); font-size: 13px; max-width: 80ch; margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head><body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Карта «Мечта»</h1>
+      <p class="lede">Касса сообщает серверу «Мечты», что в чеке есть табак или алкоголь. Банк при оплате картой «Мечта» спрашивает сервер и отклоняет покупку, если пользователь её себе запретил. Пробейте товары и нажмите «Оплатить».</p>
+    </div>
+    <div class="head-actions">
+      <span class="mode" id="mode">Подключаюсь…</span>
+      <button class="btn" id="reset" type="button">Начать заново</button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <section class="till" aria-label="Касса магазина">
+      <div class="till-head">
+        <h2>Касса магазина</h2>
+        <span class="label">Нажмите на товар, чтобы пробить</span>
+      </div>
+      <div class="shelf" id="shelf"></div>
+      <div class="till-body">
+        <div class="receipt" aria-live="polite">
+          <div class="rh">ООО «Соседи» · терминал T-1042<br>КАССОВЫЙ ЧЕК · ПРОДАЖА</div>
+          <div class="rows" id="rows"></div>
+          <div class="total"><span>ИТОГО</span><span id="total">0,00</span></div>
+        </div>
+        <div class="terminal">
+          <span class="label">Чем платит покупатель</span>
+          <div class="seg" role="group" aria-label="Карта покупателя">
+            <button type="button" id="card-mechta" aria-pressed="true">Карта «Мечта»</button>
+            <button type="button" id="card-other" aria-pressed="false">Другая карта</button>
+          </div>
+          <div class="screen" id="screen" aria-live="polite"></div>
+          <div class="term-actions" id="termActions"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phone" aria-label="Приложение пользователя">
+      <div class="notch"></div>
+      <div class="toast" id="toast" role="status"></div>
+      <div class="app-top"><h2>Мечта</h2><span class="label">Apple Pay</span></div>
+      <div class="card">
+        <div class="n">•••• 4821</div>
+        <div class="b"><strong>Мечта</strong><span>цифровая карта</span></div>
+      </div>
+      <div class="section">
+        <span class="label">Не даю себе покупать</span>
+        <div id="toggles"></div>
+      </div>
+      <div class="piggy">
+        <span class="label">Копилка: не потрачено на вредное</span>
+        <div class="sum" id="saved">0,00 р.</div>
+        <div class="bar"><i id="bar"></i></div>
+        <div class="goal"><span>Цель: беспроводные наушники</span><span id="goalTxt">0 из 250 р.</span></div>
+      </div>
+      <div class="section">
+        <span class="label">Остановленные покупки</span>
+        <div class="hist" id="hist"></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="inside" aria-label="Что происходит внутри">
+    <div class="inside-head">
+      <h2>Что происходит внутри</h2>
+      <p>Касса не видит карту, а банк не видит чек. Сервер «Мечты» связывает их по номеру терминала, сумме и времени.</p>
+    </div>
+    <div class="lanes">
+      <span><i style="background:var(--lane-shop)"></i>Касса с модулем «Мечты»</span>
+      <span><i style="background:var(--lane-term)"></i>Терминал</span>
+      <span><i style="background:var(--lane-bank)"></i>Банк карты</span>
+      <span><i style="background:var(--lane-mechta)"></i>Сервер «Мечты»</span>
+    </div>
+    <ol class="steps" id="steps" aria-live="polite"></ol>
+  </section>
+
+  <p class="note">Демонстрация с условными товарами и суммами. Касса определяет алкоголь и табак по коду маркировки, а банк отклоняет оплату обычным отказом, без отмены транзакции.</p>
+</div>
+
+<script>
+/*
+ * Ядро сервера «Мечты».
+ * Одна и та же логика работает в Node (server.js) и в браузере (демо без сервера).
+ * Все суммы хранятся в копейках (целые числа), чтобы не было ошибок округления.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.MechtaCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // Категории, которые пользователь может себе запретить.
+  var CATEGORIES = {
+    alcohol: { name: 'Алкоголь', hint: 'пиво, вино, крепкие напитки' },
+    tobacco: { name: 'Табак', hint: 'сигареты, стики, вейпы' },
+    energy: { name: 'Энергетики', hint: 'напитки с кофеином и таурином' },
+    lottery: { name: 'Лотереи', hint: 'билеты и моментальные игры' }
+  };
+
+  // Демо-справочник «штрихкод (GTIN) → товар и категория». Коды условные.
+  // В реальной системе категория маркированных товаров берётся из кода DataMatrix.
+  var CATALOG = {
+    '4810000000017': { name: 'Хлеб «Нарочанский»', price: 189, category: null },
+    '4810000000024': { name: 'Молоко 3,2% 1 л', price: 249, category: null },
+    '4810000000031': { name: 'Яблоки 1 кг', price: 315, category: null },
+    '4810000000048': { name: 'Сигареты, пачка', price: 800, category: 'tobacco', marked: true },
+    '4810000000055': { name: 'Пиво 0,5 л', price: 320, category: 'alcohol', marked: true },
+    '4810000000062': { name: 'Вино красное 0,75 л', price: 1790, category: 'alcohol', marked: true },
+    '4810000000079': { name: 'Энергетик 0,5 л', price: 290, category: 'energy' },
+    '4810000000086': { name: 'Лотерейный билет', price: 500, category: 'lottery' }
+  };
+
+  var DEFAULT_WINDOW_MS = 2 * 60 * 1000; // чек ждёт оплату не дольше 2 минут
+
+  function isPositiveInt(n) { return Number.isInteger(n) && n > 0; }
+
+  function fail(message) {
+    var e = new Error(message);
+    e.status = 400;
+    throw e;
+  }
+
+  /**
+   * Модуль кассы: разбирает чек по справочнику.
+   * items: [{ gtin, price, qty }], price — в копейках за штуку.
+   * Возвращает итог чека и суммы по ограничиваемым категориям.
+   */
+  function classify(items, catalog) {
+    catalog = catalog || CATALOG;
+    var total = 0;
+    var restricted = {};
+    (items || []).forEach(function (it) {
+      var qty = it.qty || 1;
+      var sum = it.price * qty;
+      total += sum;
+      var entry = catalog[it.gtin];
+      if (entry && entry.category) {
+        restricted[entry.category] = (restricted[entry.category] || 0) + sum;
+      }
+    });
+    return { total: total, restricted: restricted };
+  }
+
+  function createCore(opts) {
+    opts = opts || {};
+    var now = opts.now || function () { return Date.now(); };
+    var windowMs = opts.windowMs || DEFAULT_WINDOW_MS;
+
+    var users = {};   // userId → пользователь
+    var cards = {};   // cardRef (внутренний номер карты в банке) → userId
+    var baskets = {}; // basketId → чек от кассы
+    var seq = 0;
+
+    function purge() {
+      var limit = now() - windowMs;
+      Object.keys(baskets).forEach(function (id) {
+        if (baskets[id].createdAt < limit) delete baskets[id];
+      });
+    }
+
+    function requireUser(userId) {
+      var u = users[userId];
+      if (!u) { var e = new Error('Пользователь не найден'); e.status = 404; throw e; }
+      return u;
+    }
+
+    function validateCategories(list) {
+      if (!Array.isArray(list)) fail('blocked должен быть списком категорий');
+      list.forEach(function (c) { if (!CATEGORIES[c]) fail('Неизвестная категория: ' + c); });
+    }
+
+    function publicUser(u) {
+      return {
+        userId: u.id,
+        blocked: u.blocked.slice(),
+        savings: u.savings,
+        history: u.history.slice().reverse()
+      };
+    }
+
+    return {
+      /** Приложение: регистрация пользователя и привязка его карты. */
+      registerUser: function (p) {
+        if (!p || !p.userId || !p.cardRef) fail('Нужны userId и cardRef');
+        validateCategories(p.blocked || []);
+        users[p.userId] = { id: p.userId, cardRef: p.cardRef, blocked: (p.blocked || []).slice(), savings: 0, history: [] };
+        cards[p.cardRef] = p.userId;
+        return publicUser(users[p.userId]);
+      },
+
+      /** Приложение: пользователь меняет список запретов. */
+      setBlocked: function (userId, blocked) {
+        var u = requireUser(userId);
+        validateCategories(blocked);
+        u.blocked = blocked.slice();
+        return publicUser(u);
+      },
+
+      /** Приложение: настройки, копилка и история. */
+      getUser: function (userId) { return publicUser(requireUser(userId)); },
+
+      /**
+       * Касса → сервер (шаг 1). Касса шлёт чек, только если в нём есть
+       * ограничиваемые товары. Данных карты и покупателя здесь нет.
+       */
+      submitBasket: function (p) {
+        purge();
+        if (!p || typeof p.terminalId !== 'string' || !p.terminalId) fail('Нужен terminalId');
+        if (!isPositiveInt(p.amount)) fail('amount — сумма чека в копейках, целое число больше 0');
+        var restricted = p.restricted || {};
+        var cats = Object.keys(restricted);
+        if (!cats.length) fail('В чеке нет ограничиваемых товаров, отправлять его не нужно');
+        cats.forEach(function (c) {
+          if (!CATEGORIES[c]) fail('Неизвестная категория: ' + c);
+          if (!isPositiveInt(restricted[c])) fail('Сумма категории ' + c + ' должна быть в копейках');
+        });
+        var id = 'b' + (++seq);
+        baskets[id] = {
+          id: id,
+          terminalId: p.terminalId,
+          merchantId: p.merchantId || null,
+          amount: p.amount,
+          restricted: Object.assign({}, restricted),
+          createdAt: now(),
+          status: 'pending',
+          declinedFor: [],
+          savedTo: {}
+        };
+        return { basketId: id, expiresInSec: Math.round(windowMs / 1000) };
+      },
+
+      /**
+       * Банк → сервер (шаги 4–5). Банк спрашивает про оплату картой «Мечта».
+       * Сопоставление: тот же терминал, та же сумма, чек не старше окна ожидания.
+       */
+      authorize: function (p) {
+        purge();
+        if (!p || !p.cardRef || !p.terminalId || !isPositiveInt(p.amount)) fail('Нужны cardRef, terminalId и amount');
+        var t = p.time || now();
+        var userId = cards[p.cardRef];
+        if (!userId) return { decision: 'APPROVE', reason: 'not_mechta_card' };
+        var u = users[userId];
+
+        var match = null;
+        Object.keys(baskets).forEach(function (id) {
+          var b = baskets[id];
+          if (b.terminalId === p.terminalId && b.amount === p.amount && b.status !== 'paid' &&
+              b.createdAt <= t && b.createdAt >= t - windowMs) {
+            if (!match || b.createdAt > match.createdAt) match = b;
+          }
+        });
+        if (!match) return { decision: 'APPROVE', reason: 'no_restricted_basket' };
+
+        var hits = Object.keys(match.restricted).filter(function (c) { return u.blocked.indexOf(c) !== -1; });
+        if (!hits.length) {
+          match.status = 'paid';
+          return { decision: 'APPROVE', reason: 'not_blocked_by_user', basketId: match.id };
+        }
+
+        match.status = 'declined';
+        match.declinedFor = hits;
+        // В копилку — сумма запрещённых товаров, один раз на чек и пользователя.
+        var saved = 0;
+        if (!match.savedTo[userId]) {
+          saved = hits.reduce(function (s, c) { return s + match.restricted[c]; }, 0);
+          match.savedTo[userId] = true;
+          u.savings += saved;
+          u.history.push({ time: t, amount: saved, categories: hits });
+        }
+        return { decision: 'DECLINE', reason: 'blocked_category', categories: hits, basketId: match.id, saved: saved };
+      },
+
+      /** Касса → сервер (шаг 7): почему отказ и что убрать из чека. */
+      basketStatus: function (basketId) {
+        var b = baskets[basketId];
+        if (!b) return { status: 'unknown' };
+        var res = { status: b.status, categories: b.declinedFor.slice() };
+        if (b.status === 'declined') {
+          res.hint = 'Уберите из чека: ' + b.declinedFor.map(function (c) { return CATEGORIES[c].name.toLowerCase(); }).join(', ');
+        }
+        return res;
+      },
+
+      /** Для демо: сколько чеков сейчас ждёт оплату. */
+      pendingCount: function () { purge(); return Object.keys(baskets).length; }
+    };
+  }
+
+  return {
+    CATEGORIES: CATEGORIES,
+    CATALOG: CATALOG,
+    DEFAULT_WINDOW_MS: DEFAULT_WINDOW_MS,
+    classify: classify,
+    createCore: createCore
+  };
+});
+
+</script><script>
+(function () {
+  'use strict';
+  var TERMINAL = { id: 'T-1042', merchant: 'M-000123' };
+  var CARDS = {
+    mechta: { ref: 'mechta-card-4821', label: '«Мечта» •• 4821 (Apple Pay)', isMechta: true },
+    other: { ref: 'other-card-7730', label: 'другая карта •• 7730', isMechta: false }
+  };
+  var USER_ID = 'u1';
+  var GOAL = 25000; // копейки
+  var C = window.MechtaCore;
+  var CATS = C.CATEGORIES;
+  var CATALOG = C.CATALOG;
+
+  // ---- API: настоящий сервер (node server.js) или та же логика прямо в браузере ----
+  function httpApi() {
+    function call(method, url, body) {
+      return fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Ошибка сервера'); return j; }); });
+    }
+    return {
+      mode: 'Сервер: ' + location.host,
+      submitBasket: function (b) { return call('POST', 'api/baskets', b); },
+      authorize: function (a) { return call('POST', 'api/authorize', a); },
+      basketStatus: function (id) { return call('GET', 'api/baskets/' + encodeURIComponent(id)); },
+      getUser: function () { return call('GET', 'api/users/' + USER_ID); },
+      setBlocked: function (list) { return call('PUT', 'api/users/' + USER_ID + '/blocked', { blocked: list }); },
+      reset: function () { return call('POST', 'api/demo/reset'); }
+    };
+  }
+  function localApi() {
+    var core;
+    function init() { core = C.createCore(); core.registerUser({ userId: USER_ID, cardRef: CARDS.mechta.ref, blocked: ['alcohol', 'tobacco'] }); }
+    init();
+    function wrap(fn) { return function () { var a = arguments; return new Promise(function (res) { setTimeout(function () { res(fn.apply(null, a)); }, 0); }); }; }
+    return {
+      mode: 'Сервер: встроен в страницу',
+      submitBasket: wrap(function (b) { return core.submitBasket(b); }),
+      authorize: wrap(function (a) { return core.authorize(a); }),
+      basketStatus: wrap(function (id) { return core.basketStatus(id); }),
+      getUser: wrap(function () { return core.getUser(USER_ID); }),
+      setBlocked: wrap(function (list) { return core.setBlocked(USER_ID, list); }),
+      reset: wrap(function () { init(); return { ok: true }; })
+    };
+  }
+  function detectApi() {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 800);
+    return fetch('api/health', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { clearTimeout(timer); return j && j.ok ? httpApi() : localApi(); })
+      .catch(function () { clearTimeout(timer); return localApi(); });
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (k) { return (k / 100).toFixed(2).replace('.', ','); };
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+
+  var api;
+  var state = { cart: [], card: 'mechta', pos: 'idle', busy: false, declined: [], user: null, lastPaid: 0 };
+  var GT = {}; Object.keys(CATALOG).forEach(function (g) { GT[g] = Object.assign({ gtin: g }, CATALOG[g]); });
+  function initialCart() { return ['4810000000017', '4810000000024', '4810000000048'].map(function (g) { return GT[g]; }); }
+
+  // ---- Касса ----
+  function renderShelf() {
+    $('shelf').innerHTML = '';
+    Object.keys(GT).forEach(function (g) {
+      var p = GT[g];
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip';
+      b.innerHTML = '<b>' + p.name + '</b><span>' + money(p.price) + ' р.</span>' +
+        (p.category ? '<span class="tag">' + CATS[p.category].name + (p.marked ? ' · маркировка' : '') + '</span>' : '');
+      b.onclick = function () { if (state.busy) return; state.cart.push(p); state.pos = 'idle'; renderTill(); };
+      $('shelf').appendChild(b);
+    });
+  }
+  function cartTotal() { return state.cart.reduce(function (s, p) { return s + p.price; }, 0); }
+  function renderTill() {
+    var rows = $('rows'); rows.innerHTML = '';
+    if (!state.cart.length) rows.innerHTML = '<div class="empty">Чек пуст. Пробейте товары.</div>';
+    state.cart.forEach(function (p, i) {
+      var bad = state.pos === 'declined' && state.declined.indexOf(p.category) !== -1;
+      var d = document.createElement('div');
+      d.className = 'row' + (bad ? ' bad' : '');
+      d.innerHTML = '<span class="nm">' + p.name + (p.marked ? '<span class="mk">DataMatrix ✓</span>' : '') + '</span><span class="pr">' + money(p.price) + '</span>';
+      var x = document.createElement('button');
+      x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Убрать ' + p.name);
+      x.onclick = function () { if (state.busy) return; state.cart.splice(i, 1); state.pos = 'idle'; renderTill(); };
+      d.appendChild(x); rows.appendChild(d);
+    });
+    $('total').textContent = money(cartTotal());
+    renderTerminal();
+  }
+  function btn(text, cls, fn) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn ' + cls; b.textContent = text; b.onclick = fn; return b;
+  }
+  function renderTerminal() {
+    var s = $('screen'), a = $('termActions');
+    s.className = 'screen'; a.innerHTML = '';
+    ['mechta', 'other'].forEach(function (k) { $('card-' + k).setAttribute('aria-pressed', String(state.card === k)); });
+    if (state.pos === 'idle') {
+      s.innerHTML = '<div class="sub">К оплате</div><div class="big">' + money(cartTotal()) + ' BYN</div>';
+      var b = btn('Оплатить', 'primary', pay); b.disabled = !state.cart.length || state.busy; a.appendChild(b);
+    } else if (state.pos === 'reading') {
+      s.innerHTML = '<div class="pulse"></div><div class="sub">Запрос в банк…</div><div class="big">' + money(cartTotal()) + ' BYN</div>';
+    } else if (state.pos === 'declined') {
+      s.classList.add('declined');
+      s.innerHTML = '<div class="big">Отказ банка</div><div class="sub">' + (state.hint || '') + '</div>';
+      a.appendChild(btn('Убрать и оплатить остальное', 'primary', removeAndPay));
+      a.appendChild(btn('Отменить покупку', '', function () { state.pos = 'idle'; renderTill(); }));
+    } else if (state.pos === 'paid') {
+      s.classList.add('paid');
+      s.innerHTML = '<div class="sub">Одобрено</div><div class="big">' + money(state.lastPaid) + ' BYN</div><div class="sub">Спасибо за покупку</div>';
+      a.appendChild(btn('Следующий покупатель', '', function () { state.cart = []; state.pos = 'idle'; renderTill(); }));
+    }
+  }
+
+  // ---- Лента шагов ----
+  var WHO = { shop: 'Касса', term: 'Терминал', bank: 'Банк', mechta: 'Сервер «Мечты»' };
+  function clearSteps(text) { $('steps').innerHTML = '<li class="placeholder">' + (text || 'Нажмите «Оплатить», и здесь появятся сообщения между системами.') + '</li>'; }
+  function addStep(n, from, to, what, payload, tone) {
+    var list = $('steps');
+    var ph = list.querySelector('.placeholder'); if (ph) ph.remove();
+    var li = document.createElement('li');
+    li.className = 'step' + (tone ? ' ' + tone : '');
+    var route = '<span class="who ' + from + '">' + WHO[from] + '</span>' + (to ? '<span class="arrow" aria-label="отправляет">→</span><span class="who ' + to + '">' + WHO[to] + '</span>' : '');
+    li.innerHTML = '<span class="num">' + n + '</span><div><div class="route">' + route + '</div><p class="what"></p>' + (payload ? '<div class="payload"></div>' : '') + '</div>';
+    li.querySelector('.what').textContent = what;
+    if (payload) li.querySelector('.payload').textContent = JSON.stringify(payload, null, 1).replace(/\n\s*/g, ' ');
+    list.appendChild(li);
+  }
+
+  // ---- Сценарий оплаты ----
+  async function pay() {
+    if (!state.cart.length || state.busy) return;
+    state.busy = true; state.pos = 'reading'; renderTill(); clearSteps(' ');
+    var card = CARDS[state.card];
+    var items = state.cart.map(function (p) { return { gtin: p.gtin, price: p.price }; });
+    var cls = C.classify(items, CATALOG);
+    var basketId = null;
+    try {
+      if (Object.keys(cls.restricted).length) {
+        var basket = { terminalId: TERMINAL.id, merchantId: TERMINAL.merchant, amount: cls.total, restricted: cls.restricted };
+        var r1 = await api.submitBasket(basket);
+        basketId = r1.basketId;
+        addStep(1, 'shop', 'mechta', 'Чек с ограничиваемыми товарами: ' + Object.keys(cls.restricted).map(function (c) { return CATS[c].name.toLowerCase() + ' ' + money(cls.restricted[c]); }).join(', ') + '. Данных покупателя нет.', basket);
+      } else {
+        addStep(1, 'shop', null, 'В чеке нет ограничиваемых товаров, касса ничего не отправляет.', null, 'skip');
+      }
+      await wait(450);
+      addStep(2, 'shop', 'term', 'К оплате ' + money(cls.total) + ' BYN.');
+      await wait(450);
+      var auth = { cardRef: card.ref, terminalId: TERMINAL.id, amount: cls.total };
+      addStep(3, 'term', 'bank', 'Запрос оплаты: ' + card.label + ', терминал ' + TERMINAL.id + ', ' + money(cls.total) + ' BYN.');
+      await wait(500);
+      var res;
+      if (card.isMechta) {
+        addStep(4, 'bank', 'mechta', 'Это карта «Мечта». Можно одобрить?', auth);
+        res = await api.authorize(auth);
+        await wait(400);
+        if (res.decision === 'DECLINE') {
+          addStep(5, 'mechta', 'bank', 'Нет: в чеке ' + res.categories.map(function (c) { return CATS[c].name.toLowerCase(); }).join(', ') + ', пользователь это запретил.', res, 'no');
+        } else {
+          var why = { no_restricted_basket: 'чека с ограничиваемыми товарами нет', not_blocked_by_user: 'пользователь эти категории не запрещал' }[res.reason] || 'ограничений нет';
+          addStep(5, 'mechta', 'bank', 'Да: ' + why + '.', res, 'ok');
+        }
+      } else {
+        addStep(4, 'bank', null, 'Обычная карта, «Мечта» не участвует. Банк проверяет только баланс.', null, 'skip');
+        res = { decision: 'APPROVE' };
+      }
+      await wait(450);
+      if (res.decision === 'DECLINE') {
+        addStep(6, 'bank', 'term', 'Отказ. Обычный отказ банка, отменять ничего не нужно.', null, 'no');
+        await wait(400);
+        var st = await api.basketStatus(res.basketId || basketId);
+        addStep(7, 'mechta', 'shop', 'Подсказка кассиру: ' + (st.hint || '').replace('Уберите из чека: ', 'уберите ') + '.', st);
+        state.declined = st.categories || res.categories;
+        state.hint = st.hint;
+        state.pos = 'declined';
+        if (res.saved) showToast('Покупка остановлена', '+' + money(res.saved) + ' р. отправлено в копилку');
+        await refreshUser();
+      } else {
+        addStep(6, 'bank', 'term', 'Одобрено.', null, 'ok');
+        state.lastPaid = cls.total;
+        state.pos = 'paid';
+      }
+    } catch (e) {
+      addStep('!', 'mechta', null, 'Ошибка: ' + e.message, null, 'no');
+      state.pos = 'idle';
+    }
+    state.busy = false; renderTill();
+  }
+
+  async function removeAndPay() {
+    state.cart = state.cart.filter(function (p) { return state.declined.indexOf(p.category) === -1; });
+    state.pos = 'idle'; state.declined = []; renderTill();
+    if (state.cart.length) { await wait(300); pay(); }
+  }
+
+  // ---- Приложение ----
+  async function refreshUser() { state.user = await api.getUser(); renderPhone(); }
+  function renderPhone() {
+    var u = state.user; if (!u) return;
+    var t = $('toggles'); t.innerHTML = '';
+    Object.keys(CATS).forEach(function (k) {
+      var l = document.createElement('label'); l.className = 'toggle';
+      l.innerHTML = '<span>' + CATS[k].name + '<small>' + CATS[k].hint + '</small></span><input type="checkbox" id="tg-' + k + '"' + (u.blocked.indexOf(k) !== -1 ? ' checked' : '') + '><span class="track"></span>';
+      l.querySelector('input').onchange = async function (e) {
+        var list = Object.keys(CATS).filter(function (c) { return c === k ? e.target.checked : u.blocked.indexOf(c) !== -1; });
+        state.user = await api.setBlocked(list);
+        if (state.pos === 'declined') state.pos = 'idle';
+        renderPhone(); renderTill();
+      };
+      t.appendChild(l);
+    });
+    $('saved').textContent = money(u.savings) + ' р.';
+    $('bar').style.width = Math.min(100, u.savings / GOAL * 100) + '%';
+    $('goalTxt').textContent = money(u.savings) + ' из ' + money(GOAL).replace(',00', '') + ' р.';
+    var h = $('hist');
+    h.innerHTML = u.history.length ? '' : '<div style="color:var(--muted)">Пока ничего. Попробуйте купить сигареты.</div>';
+    u.history.forEach(function (e) {
+      var d = document.createElement('div');
+      d.innerHTML = '<span>' + e.categories.map(function (c) { return CATS[c].name; }).join(', ') + '</span><span class="p">+' + money(e.amount) + ' р.</span>';
+      h.appendChild(d);
+    });
+  }
+  var toastTimer;
+  function showToast(title, text) {
+    var t = $('toast');
+    t.innerHTML = '<b>' + title + '</b>' + text; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3800);
+  }
+
+  // ---- Запуск ----
+  ['mechta', 'other'].forEach(function (k) {
+    $('card-' + k).onclick = function () { if (state.busy) return; state.card = k; if (state.pos !== 'reading') state.pos = 'idle'; renderTill(); };
+  });
+  $('reset').onclick = async function () {
+    if (state.busy) return;
+    await api.reset();
+    state.cart = initialCart(); state.pos = 'idle'; state.card = 'mechta'; state.declined = [];
+    clearSteps(); renderTill(); refreshUser();
+  };
+
+  state.cart = initialCart();
+  renderShelf(); renderTill(); clearSteps();
+  detectApi().then(function (a) {
+    api = a; $('mode').textContent = a.mode;
+    return refreshUser();
+  });
+})();
+</script>
+</body></html>
