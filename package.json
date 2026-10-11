@@ -1,0 +1,11 @@
+{
+  "name": "mechta",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Карта «Мечта»: модуль кассы, демо-касса и сервер для проверки",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Касса «Мечта»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9e7e1;
+    --panel: #fbfaf7;
+    --ink: #1c1c1a;
+    --muted: #6b6a64;
+    --line: #d6d3ca;
+    --accent: #1f5f4a;
+    --accent-ink: #ffffff;
+    --danger: #b3261e;
+    --danger-bg: #fbe9e7;
+    --ok: #1f7a3f;
+    --ok-bg: #e5f3e8;
+    --warn-bg: #fff4d6;
+    --screen: #10201b;
+    --screen-ink: #b9f3d6;
+    --shadow: 0 1px 0 rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.06);
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121412; --panel: #1b1e1c; --ink: #ecebe6; --muted: #9c9b94; --line: #2e322f;
+      --accent: #4fb08b; --accent-ink: #0d1a15; --danger: #ff8a80; --danger-bg: #3a1d1b;
+      --ok: #7fd49a; --ok-bg: #18301f; --warn-bg: #33301c; --screen: #08110e; --screen-ink: #9ef0c6;
+      --shadow: 0 1px 0 rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121412; --panel: #1b1e1c; --ink: #ecebe6; --muted: #9c9b94; --line: #2e322f;
+    --accent: #4fb08b; --accent-ink: #0d1a15; --danger: #ff8a80; --danger-bg: #3a1d1b;
+    --ok: #7fd49a; --ok-bg: #18301f; --warn-bg: #33301c; --screen: #08110e; --screen-ink: #9ef0c6;
+    --shadow: 0 1px 0 rgba(0,0,0,.3);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  header {
+    display: flex; align-items: center; gap: 16px; padding: 10px 20px;
+    border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap;
+  }
+  .brand { font-weight: 700; letter-spacing: -.01em; }
+  .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+  .meta { display: flex; gap: 14px; color: var(--muted); font-size: 13px; flex-wrap: wrap; }
+  .meta b { color: var(--ink); font-weight: 500; font-family: var(--mono); }
+  .spacer { flex: 1; }
+  .badge { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .badge.live { color: var(--ok); border-color: currentColor; }
+  .ghost { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+  .ghost:hover { border-color: var(--muted); }
+
+  main {
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr);
+    gap: 16px; padding: 16px 20px 24px; max-width: 1400px; margin: 0 auto;
+  }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 12px 16px; } }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+
+  /* Чек */
+  .receipt { display: flex; flex-direction: column; min-height: 320px; }
+  @media (min-width: 861px) { .receipt { position: sticky; top: 16px; height: calc(100vh - 90px); min-height: 420px; } }
+  .receipt-head { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 18px; border-bottom: 1px dashed var(--line); }
+  .receipt-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .receipt-head span { color: var(--muted); font-size: 13px; }
+  .lines { list-style: none; margin: 0; padding: 4px 0; flex: 1; overflow: auto; }
+  @media (max-width: 860px) { .lines { max-height: 52vh; } }
+  .line {
+    display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center;
+    padding: 10px 18px; border-bottom: 1px solid var(--line);
+  }
+  .line .name { min-width: 0; }
+  .line .name div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .line .name small { color: var(--muted); font-size: 12px; font-family: var(--mono); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 4px; margin-left: 6px; background: var(--warn-bg); color: var(--ink); font-family: var(--sans); vertical-align: 1px; }
+  .line.flag { background: var(--danger-bg); }
+  .line.flag .tag { background: var(--danger); color: #fff; }
+  .qty { display: flex; align-items: center; gap: 4px; }
+  .qty button { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); }
+  .qty button:disabled { opacity: .3; cursor: default; }
+  .qty span { min-width: 22px; text-align: center; }
+  .line .sum { min-width: 72px; text-align: right; }
+  .del { background: none; border: none; color: var(--muted); font-size: 20px; width: 30px; height: 30px; border-radius: 6px; }
+  .del:hover { background: var(--line); }
+  .empty { padding: 48px 18px; text-align: center; color: var(--muted); }
+  .empty b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 6px; font-weight: 500; }
+  .totals { padding: 14px 18px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; align-items: baseline; }
+  .totals .t { font-size: 32px; font-weight: 600; }
+  .totals small { color: var(--muted); }
+
+  /* Правая колонка */
+  .side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .scan { padding: 14px; }
+  .scan label { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; }
+  .scan-row { display: flex; gap: 8px; margin-top: 6px; }
+  .scan input {
+    flex: 1; min-width: 0; font: 500 18px var(--mono); padding: 12px 14px; border-radius: 8px;
+    border: 2px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .scan input:focus { outline: none; border-color: var(--accent); }
+  .scan .add { padding: 0 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); }
+  .scan-flash { font-size: 13px; margin-top: 8px; min-height: 18px; color: var(--muted); }
+  .scan-flash.err { color: var(--danger); }
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; margin-top: 10px; }
+  .shelf button {
+    text-align: left; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; line-height: 1.2;
+  }
+  .shelf button:hover { border-color: var(--muted); }
+  .shelf button small { display: block; color: var(--muted); font-family: var(--mono); font-size: 11px; margin-top: 3px; }
+
+  .pay { padding: 14px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cards button {
+    padding: 12px; border-radius: 10px; border: 2px solid var(--line); background: var(--bg); text-align: left; font-size: 14px;
+  }
+  .cards button small { display: block; color: var(--muted); font-size: 12px; font-family: var(--mono); }
+  .cards button[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); }
+  .paybtn {
+    width: 100%; margin-top: 10px; padding: 15px; border: none; border-radius: 10px;
+    background: var(--accent); color: var(--accent-ink); font-size: 19px; font-weight: 600;
+  }
+  .paybtn:disabled { opacity: .45; cursor: default; }
+
+  /* Экран терминала */
+  .terminal { background: var(--screen); color: var(--screen-ink); border-radius: 10px; padding: 10px 16px; margin-top: 10px; font-family: var(--mono); min-height: 62px; }
+  .terminal .big { font-size: 20px; font-weight: 600; }
+  .terminal .small { font-size: 12px; opacity: .75; margin-top: 4px; }
+  .terminal.no { color: #ffb4ab; }
+
+  /* Подсказка кассиру */
+  .hint { display: none; margin-top: 12px; border-radius: 10px; padding: 14px 16px; background: var(--danger-bg); border: 1px solid var(--danger); }
+  .hint.show { display: block; }
+  .hint h3 { margin: 0 0 4px; font-size: 17px; color: var(--danger); }
+  .hint p { margin: 0 0 12px; font-size: 14px; line-height: 1.4; }
+  .hint .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hint .primary { padding: 12px 16px; border-radius: 8px; border: none; background: var(--danger); color: #fff; font-weight: 600; }
+  .hint .secondary { padding: 12px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); }
+  .paid { display: none; margin-top: 12px; border-radius: 10px; padding: 14px 16px; background: var(--ok-bg); border: 1px solid var(--ok); }
+  .paid.show { display: block; }
+  .paid h3 { margin: 0 0 8px; font-size: 17px; color: var(--ok); }
+  .paid button { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); }
+
+  /* Журнал обмена */
+  .log { padding: 0; }
+  .log summary { padding: 12px 14px; cursor: pointer; font-size: 14px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; }
+  .log summary::-webkit-details-marker { display: none; }
+  .log summary span { color: var(--muted); font-weight: 400; }
+  .log ol { margin: 0; padding: 0 14px 12px; list-style: none; max-height: 300px; overflow: auto; }
+  .log li { font-size: 13px; padding: 7px 0; border-top: 1px solid var(--line); }
+  .log li .who { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .log li pre { margin: 4px 0 0; font-size: 11px; white-space: pre-wrap; word-break: break-all; color: var(--muted); font-family: var(--mono); }
+  .log li.no .what { color: var(--danger); }
+  .log li.ok .what { color: var(--ok); }
+
+  /* Шторка «приложение покупателя» */
+  .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 10; }
+  .sheet-bg.show { display: block; }
+  .sheet {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 100vw); background: var(--panel);
+    border-left: 1px solid var(--line); z-index: 11; transform: translateX(100%); transition: transform .2s ease;
+    display: flex; flex-direction: column; padding: 18px; gap: 14px; overflow: auto;
+  }
+  .sheet.show { transform: none; }
+  .sheet h2 { margin: 0; font-size: 17px; }
+  .sheet .sub { color: var(--muted); font-size: 13px; margin-top: -8px; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .toggle small { display: block; color: var(--muted); font-size: 12px; }
+  .toggle input { width: 22px; height: 22px; accent-color: var(--accent); }
+  .bank { background: var(--bg); border-radius: 10px; padding: 14px; }
+  .bank .lbl { font-size: 13px; color: var(--muted); }
+  .bank .val { font-size: 28px; font-weight: 600; }
+  .hist { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  .hist li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+  .field input, .field select { font: 15px var(--sans); padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+
+  /* Диалог неизвестного товара */
+  dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); padding: 18px; width: min(400px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  dialog h3 { margin: 0 0 4px; }
+  dialog .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; font-family: var(--mono); }
+  dialog form { display: flex; flex-direction: column; gap: 10px; }
+  dialog .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  dialog .row button { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); }
+  dialog .row .go { background: var(--accent); color: var(--accent-ink); border: none; font-weight: 600; }
+
+  .toast { position: fixed; left: 50%; top: 64px; transform: translateX(-50%) translateY(-12px); opacity: 0; transition: .2s; background: var(--ink); color: var(--panel); padding: 12px 18px; border-radius: 10px; font-size: 14px; z-index: 20; pointer-events: none; max-width: calc(100vw - 32px); }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Касса №1 <small>магазин «У дома» · модуль «Мечта» <span id="ver" class="num"></span></small></div>
+  <div class="meta">
+    <span>Терминал <b id="tid">T-1042</b></span>
+    <span>Справочник <b id="catsize">—</b></span>
+  </div>
+  <div class="spacer"></div>
+  <span class="badge" id="mode">…</span>
+  <button class="ghost" id="open-app">Приложение покупателя</button>
+</header>
+
+<main>
+  <section class="card receipt" aria-label="Чек">
+    <div class="receipt-head"><h2>Чек</h2><span id="count">0 позиций</span></div>
+    <ul class="lines" id="lines"></ul>
+    <div class="totals"><small>Итого, BYN</small><span class="t num" id="total">0,00</span></div>
+  </section>
+
+  <div class="side">
+    <section class="card scan">
+      <label for="scan">Штрихкод или код маркировки <span>сканер работает в любом месте экрана</span></label>
+      <div class="scan-row">
+        <input id="scan" inputmode="numeric" autocomplete="off" placeholder="4810000000055" spellcheck="false">
+        <button class="add" id="scan-add">Добавить</button>
+      </div>
+      <div class="scan-flash" id="flash"></div>
+      <div class="shelf" id="shelf" aria-label="Быстрые товары"></div>
+    </section>
+
+    <section class="card pay">
+      <div class="cards">
+        <button id="card-mechta" aria-pressed="true">Карта «Мечта»<small>•• 4821</small></button>
+        <button id="card-other" aria-pressed="false">Другая карта<small>•• 7730</small></button>
+      </div>
+      <button class="paybtn" id="pay" disabled>Оплата картой</button>
+      <div class="terminal" id="term"><div class="big">ГОТОВ</div><div class="small">Ожидание суммы от кассы</div></div>
+      <div class="hint" id="hint">
+        <h3 id="hint-title">Отказ: товары под запретом покупателя</h3>
+        <p id="hint-text"></p>
+        <div class="actions">
+          <button class="primary" id="hint-remove">Убрать и повторить оплату</button>
+          <button class="secondary" id="hint-keep">Оплатить другой картой</button>
+        </div>
+      </div>
+      <div class="paid" id="paid">
+        <h3 id="paid-title">Оплачено</h3>
+        <button id="next">Следующий покупатель</button>
+      </div>
+    </section>
+
+    <details class="card log" id="logbox">
+      <summary>Обмен с сервером «Мечты» <span id="logcount">0</span></summary>
+      <ol id="log"></ol>
+    </details>
+  </div>
+</main>
+
+<div class="sheet-bg" id="sheet-bg"></div>
+<aside class="sheet" id="sheet" aria-label="Приложение покупателя">
+  <h2>Приложение «Мечта»</h2>
+  <div class="sub">Так это видит покупатель. Для демо на стенде.</div>
+  <div class="bank"><div class="lbl">В копилке на мечту</div><div class="val num" id="savings">0,00 р.</div></div>
+  <div>
+    <div class="lbl" style="font-size:13px;color:var(--muted)">Не даю себе покупать</div>
+    <div id="toggles"></div>
+  </div>
+  <div>
+    <div class="lbl" style="font-size:13px;color:var(--muted);margin-bottom:4px">Остановленные покупки</div>
+    <ul class="hist" id="hist"></ul>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--line);width:100%">
+  <div class="field">Номер терминала (TID)<input id="cfg-tid" value="T-1042"></div>
+  <button class="ghost" id="reset">Сбросить демо</button>
+</aside>
+
+<dialog id="unknown">
+  <h3>Товара нет в базе</h3>
+  <div class="sub" id="unk-code"></div>
+  <form method="dialog" id="unk-form">
+    <label class="field">Название<input id="unk-name" required placeholder="Например, сок яблочный 1 л"></label>
+    <label class="field">Цена, BYN<input id="unk-price" required inputmode="decimal" placeholder="3,49"></label>
+    <label class="field">Группа в базе магазина
+      <select id="unk-cat">
+        <option value="">обычный товар</option>
+        <option value="alcohol">алкоголь</option>
+        <option value="tobacco">табак</option>
+        <option value="energy">энергетики</option>
+        <option value="lottery">лотереи</option>
+      </select>
+    </label>
+    <div class="row"><button value="cancel" formnovalidate>Отмена</button><button class="go" value="ok">Добавить в чек</button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script src="../server/mechta-core.js"></script>
+<script src="../pos-module/mechta-pos.js"></script>
+<script>
+(function () {
+  'use strict';
+  var Core = window.MechtaCore, Pos = window.MechtaPos;
+  var USER = 'u1', CARD_REF = 'mechta-card-4821';
+  var NAMES = { alcohol: 'алкоголь', tobacco: 'табак', energy: 'энергетик', lottery: 'лотерея' };
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (k) { return (k / 100).toFixed(2).replace('.', ','); };
+
+  function store(key, val) {
+    try { if (val === undefined) return JSON.parse(localStorage.getItem(key) || 'null'); localStorage.setItem(key, JSON.stringify(val)); } catch (e) { return null; }
+  }
+
+  // ---------------- Сервер: настоящий (node server/server.js) или та же логика в браузере ----------------
+  // Модулю кассы всё равно: он ходит через fetch. Без сервера fetch подменяется на локальное ядро.
+  var local = null;
+  function localReset() {
+    local = Core.createCore();
+    local.registerUser({ userId: USER, cardRef: CARD_REF, blocked: ['alcohol', 'tobacco'] });
+  }
+  function localFetch(url, init) {
+    init = init || {};
+    var u = new URL(url, location.href), p = u.pathname.replace(/^.*\/api\//, '/api/'), m;
+    var body = init.body ? JSON.parse(init.body) : {};
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        var status = 200, out;
+        try {
+          if (p === '/api/catalog') out = { version: 'local', categories: Core.CATEGORIES, items: Core.CATALOG };
+          else if (p === '/api/baskets' && init.method === 'POST') { out = local.submitBasket(body); status = 201; }
+          else if ((m = /^\/api\/baskets\/(.+)$/.exec(p)) && init.method === 'DELETE') out = local.closeBasket(decodeURIComponent(m[1]));
+          else if ((m = /^\/api\/baskets\/(.+)$/.exec(p))) out = local.basketStatus(decodeURIComponent(m[1]));
+          else if ((m = /^\/api\/users\/([^/]+)\/blocked$/.exec(p))) out = local.setBlocked(m[1], body.blocked);
+          else if ((m = /^\/api\/users\/([^/]+)$/.exec(p))) out = local.getUser(m[1]);
+          else if (p === '/api/demo/terminal') {
+            if (body.card !== 'mechta') out = { approved: true, responseCode: '00' };
+            else { var r = local.authorize({ cardRef: CARD_REF, terminalId: body.terminalId, amount: body.amount }); out = { approved: r.decision === 'APPROVE', responseCode: r.decision === 'APPROVE' ? '00' : '05', mechta: r }; }
+          }
+          else if (p === '/api/demo/reset') { localReset(); out = { ok: true }; }
+          else { status = 404; out = { error: 'Нет такого метода' }; }
+        } catch (e) { status = e.status || 500; out = { error: e.message }; }
+        resolve(new Response(JSON.stringify(out), { status: status, headers: { 'Content-Type': 'application/json' } }));
+      }, 60);
+    });
+  }
+
+  var apiBase = new URL('../', location.href).href; // корень репозитория: там /api/ у node-сервера
+  var useLocal = true;
+  function detect() {
+    var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, 800);
+    return fetch(apiBase + 'api/health', { cache: 'no-store', signal: ctrl.signal })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { clearTimeout(t); useLocal = !(j && j.ok); })
+      .catch(function () { clearTimeout(t); useLocal = true; });
+  }
+
+  // Журнал: каждый запрос модуля к серверу виден на стенде.
+  var logCount = 0;
+  function addLog(who, what, payload, tone) {
+    var li = document.createElement('li');
+    if (tone) li.className = tone;
+    li.innerHTML = '<div class="who"></div><div class="what"></div>' + (payload ? '<pre></pre>' : '');
+    li.querySelector('.who').textContent = new Date().toLocaleTimeString('ru-RU') + ' · ' + who;
+    li.querySelector('.what').textContent = what;
+    if (payload) li.querySelector('pre').textContent = JSON.stringify(payload);
+    $('log').prepend(li);
+    $('logcount').textContent = ++logCount;
+  }
+  function tracingFetch(url, init) {
+    var f = useLocal ? localFetch : fetch;
+    var path = new URL(url, location.href).pathname.replace(/^.*\/api\//, '/api/');
+    var req = init && init.body ? JSON.parse(init.body) : null;
+    return f(url, init).then(function (r) {
+      return r.clone().json().then(function (j) {
+        if (path !== '/api/catalog') addLog('касса → сервер · ' + ((init && init.method) || 'GET') + ' ' + path, describe(path, req, j), { запрос: req, ответ: j });
+        return r;
+      }, function () { return r; });
+    });
+  }
+  function describe(path, req, res) {
+    if (path === '/api/baskets') return 'Шаг 1. Чек с ограничиваемыми товарами, данных покупателя нет → ' + (res.basketId || 'ошибка');
+    if (/\/api\/baskets\//.test(path) && req === null && res.status === 'closed') return 'Чек закрыт — больше не сработает на следующую оплату';
+    if (/\/api\/baskets\//.test(path)) return 'Шаг 7. Почему отказ? → ' + (res.hint || res.status);
+    return path;
+  }
+  function api(method, path, body) {
+    return (useLocal ? localFetch : fetch)(apiBase + path, { method: method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }).then(function (r) { return r.json(); });
+  }
+
+  // ---------------- Модуль кассы ----------------
+  var pos;
+  function createModule() {
+    pos = Pos.createPosModule({
+      serverUrl: apiBase,
+      terminalId: state.tid,
+      merchantId: 'M-000123',
+      fetch: tracingFetch,
+      // Пометка в базе магазина: группы товаров → категории «Мечты».
+      groupMap: { ALC: 'alcohol', TOB: 'tobacco', ENR: 'energy', LOT: 'lottery' },
+      log: function (level, msg, data) { if (level !== 'info') addLog('модуль · ' + level, msg, data, 'no'); }
+    });
+    $('ver').textContent = 'v' + pos.version;
+    return pos.loadCatalog().then(function () { $('catsize').textContent = pos.catalogSize() + ' кодов'; });
+  }
+
+  // ---------------- Состояние кассы ----------------
+  var state = {
+    tid: store('mechta.tid') || 'T-1042',
+    cart: [],            // { gtin, name, price, qty, group, markCode, flagged }
+    card: 'mechta',
+    busy: false,
+    session: null,
+    decline: null,
+    user: null
+  };
+  var custom = store('mechta.custom') || {}; // товары, добавленные на стенде: gtin → { name, price, group }
+
+  function productByGtin(gtin) {
+    var c = Core.CATALOG[gtin];
+    if (c) return { gtin: gtin, name: c.name, price: c.price, cat: c.category };
+    var x = custom[gtin];
+    if (x) return { gtin: gtin, name: x.name, price: x.price, group: x.group || null, cat: groupCat(x.group) };
+    return null;
+  }
+  function groupCat(g) { return { ALC: 'alcohol', TOB: 'tobacco', ENR: 'energy', LOT: 'lottery' }[g] || null; }
+
+  function addProduct(p, markCode) {
+    if (state.busy) return;
+    clearOutcome();
+    // Маркированный товар: каждый код — отдельная строка (как требует учёт маркировки).
+    var same = !markCode && state.cart.find(function (l) { return l.gtin === p.gtin && !l.markCode; });
+    if (same) same.qty++;
+    else state.cart.push({ gtin: p.gtin, name: p.name, price: p.price, qty: 1, group: p.group || null, markCode: markCode || null, cat: p.cat });
+    flash((markCode ? 'Код маркировки · ' : '') + p.name + ' · ' + money(p.price));
+    render();
+  }
+
+  function onScan(raw) {
+    raw = String(raw || '').trim();
+    if (!raw) return;
+    var s = Pos.parseScan(raw);
+    if (!s.gtin) { flash('Код не распознан: ' + raw.slice(0, 40), true); return; }
+    var p = productByGtin(s.gtin);
+    if (!p) return askUnknown(s.gtin, s.marked ? raw : null);
+    addProduct(p, s.marked ? raw : null);
+  }
+
+  // ---------------- Неизвестный товар (стенд с настоящими товарами) ----------------
+  var pending = null;
+  function askUnknown(gtin, markCode) {
+    pending = { gtin: gtin, markCode: markCode };
+    $('unk-code').textContent = gtin + (markCode ? ' · маркированный' : '');
+    $('unk-name').value = ''; $('unk-price').value = '';
+    $('unk-cat').value = markCode ? 'alcohol' : '';
+    $('unknown').showModal();
+    setTimeout(function () { $('unk-name').focus(); }, 30);
+  }
+  $('unk-form').addEventListener('submit', function (e) {
+    if (e.submitter && e.submitter.value === 'cancel') { pending = null; return; }
+    var price = Math.round(parseFloat($('unk-price').value.replace(',', '.')) * 100);
+    if (!(price > 0)) { e.preventDefault(); $('unk-price').focus(); return; }
+    var groupCode = { alcohol: 'ALC', tobacco: 'TOB', energy: 'ENR', lottery: 'LOT' }[$('unk-cat').value] || null;
+    custom[pending.gtin] = { name: $('unk-name').value.trim(), price: price, group: groupCode };
+    store('mechta.custom', custom);
+    var p = productByGtin(pending.gtin);
+    pending.markCode ? addProduct(p, pending.markCode) : addProduct(p);
+    pending = null;
+    renderShelf();
+  });
+
+  // ---------------- Сканер ----------------
+  // USB/Bluetooth-сканер в режиме клавиатуры «печатает» код за 20–80 мс и жмёт Enter.
+  // Ловим такой быстрый ввод где угодно на странице, кроме полей диалога.
+  var buf = '', lastKey = 0;
+  document.addEventListener('keydown', function (e) {
+    if ($('unknown').open) return;
+    var t = e.target;
+    var inScanField = t === $('scan');
+    var inOtherField = !inScanField && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA');
+    if (inOtherField) return;
+    var now = performance.now();
+    if (now - lastKey > 100) buf = '';
+    lastKey = now;
+    if (e.key === 'Enter') {
+      var code = inScanField ? $('scan').value : buf;
+      if (code.length >= 6) { e.preventDefault(); onScan(code); $('scan').value = ''; }
+      buf = '';
+      return;
+    }
+    if (e.key === 'F8' || (e.ctrlKey && e.key === ']')) { buf += '\u001d'; e.preventDefault(); return; } // GS от сканера
+    if (!inScanField && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) buf += e.key;
+  });
+  $('scan-add').onclick = function () { onScan($('scan').value); $('scan').value = ''; $('scan').focus(); };
+
+  function flash(text, err) {
+    var f = $('flash'); f.textContent = text; f.className = 'scan-flash' + (err ? ' err' : '');
+  }
+
+  // ---------------- Оплата ----------------
+  function linesForModule() {
+    return state.cart.map(function (l) {
+      return { gtin: l.gtin, markCode: l.markCode || undefined, group: l.group || undefined, price: l.price, qty: l.qty };
+    });
+  }
+  function total() { return state.cart.reduce(function (s, l) { return s + l.price * l.qty; }, 0); }
+
+  function term(big, small, no) {
+    $('term').className = 'terminal' + (no ? ' no' : '');
+    $('term').innerHTML = '<div class="big"></div><div class="small"></div>';
+    $('term').querySelector('.big').textContent = big;
+    $('term').querySelector('.small').textContent = small || '';
+  }
+  function clearOutcome() {
+    state.decline = null;
+    state.cart.forEach(function (l) { l.flagged = false; });
+    $('hint').classList.remove('show'); $('paid').classList.remove('show');
+    term('ГОТОВ', 'Ожидание суммы от кассы');
+  }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function pay() {
+    if (state.busy || !state.cart.length) return;
+    state.busy = true; clearOutcome(); render();
+    var items = linesForModule();
+    var amount = total();
+
+    // Шаг 1: модуль, до отправки суммы на терминал.
+    term('ПОДОЖДИТЕ', 'Касса готовит оплату');
+    var session = await pos.beforeCardPayment(items, amount);
+    state.session = session;
+    if (session.reason === 'no_restricted_items') addLog('модуль', 'Шаг 1. Ограничиваемых товаров нет — ничего не отправляем', null);
+    if (session.reason === 'server_unavailable') addLog('модуль', 'Сервер не ответил — оплата идёт как обычно', { error: session.error }, 'no');
+
+    // Шаги 2–6: терминал и банк — их модуль не трогает. Здесь эмуляция.
+    term(money(amount) + ' BYN', 'Приложите карту');
+    await wait(700);
+    term('СВЯЗЬ С БАНКОМ', state.card === 'mechta' ? 'Карта «Мечта» •• 4821' : 'Карта •• 7730');
+    var t = await api('POST', 'api/demo/terminal', { terminalId: state.tid, amount: amount, card: state.card });
+    addLog('терминал ↔ банк карты (эмуляция)', t.approved ? 'Одобрено, код 00' : 'Отказ, код ' + t.responseCode, t.mechta || null, t.approved ? 'ok' : 'no');
+
+    if (t.approved) {
+      await pos.afterCardResult(session, true);
+      term('ОДОБРЕНО', 'Код ответа 00');
+      $('paid-title').textContent = 'Оплачено ' + money(amount) + ' BYN';
+      $('paid').classList.add('show');
+      $('paid').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      state.busy = false; render();
+      return;
+    }
+
+    term('ОТКАЗ', 'Код ответа ' + t.responseCode, true);
+    // Шаг 7: почему отказ — спрашиваем сервер «Мечты».
+    var d = await pos.afterCardResult(session, false);
+    if (d.mechta) {
+      state.decline = d;
+      d.removeLines.forEach(function (i) { if (state.cart[i]) state.cart[i].flagged = true; });
+      var flagged = state.cart.filter(function (l) { return l.flagged; });
+      var sum = flagged.reduce(function (s, l) { return s + l.price * l.qty; }, 0);
+      $('hint-title').textContent = 'Уберите: ' + d.categories.map(function (c) { return NAMES[c]; }).join(', ');
+      $('hint-text').textContent = 'Покупатель сам запретил себе эти товары картой «Мечта». Отмечено в чеке: ' +
+        flagged.length + ' поз. на ' + money(sum) + ' BYN. Уберите их и повторите оплату — той же картой. Отменять транзакцию не нужно.';
+      $('hint').classList.add('show');
+      $('hint').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (t.mechta && t.mechta.saved) toast('+' + money(t.mechta.saved) + ' р. ушло в копилку покупателя');
+      refreshUser();
+    } else {
+      $('hint-title').textContent = 'Отказ банка';
+      $('hint-text').textContent = 'Причина не связана с «Мечтой». Предложите другой способ оплаты.';
+      $('hint-remove').style.display = 'none';
+      $('hint').classList.add('show');
+    }
+    state.busy = false; render();
+  }
+
+  $('pay').onclick = pay;
+  $('hint-remove').onclick = function () {
+    if (!state.decline) return;
+    state.cart = pos.removeLines(state.cart, state.decline.removeLines);
+    clearOutcome(); render();
+    if (state.cart.length) setTimeout(pay, 250);
+  };
+  $('hint-keep').onclick = function () { setCard('other'); clearOutcome(); render(); };
+  $('next').onclick = function () { state.cart = []; pos.cancel(); clearOutcome(); flash(''); render(); };
+
+  function setCard(k) {
+    state.card = k;
+    $('card-mechta').setAttribute('aria-pressed', String(k === 'mechta'));
+    $('card-other').setAttribute('aria-pressed', String(k === 'other'));
+  }
+  $('card-mechta').onclick = function () { if (!state.busy) setCard('mechta'); };
+  $('card-other').onclick = function () { if (!state.busy) setCard('other'); };
+
+  // ---------------- Отрисовка ----------------
+  function render() {
+    var ul = $('lines'); ul.innerHTML = '';
+    if (!state.cart.length) {
+      ul.innerHTML = '<li class="empty"><b>Отсканируйте товар</b>или выберите товар на полке</li>';
+    }
+    state.cart.forEach(function (l, i) {
+      var li = document.createElement('li');
+      li.className = 'line' + (l.flagged ? ' flag' : '');
+      var cat = l.cat ? '<span class="tag">' + NAMES[l.cat] + '</span>' : '';
+      li.innerHTML = '<div class="name"><div></div><small></small></div>' +
+        '<div class="qty"><button aria-label="Меньше">−</button><span class="num"></span><button aria-label="Больше">+</button></div>' +
+        '<div class="sum num"></div><button class="del" aria-label="Удалить">×</button>';
+      li.querySelector('.name div').textContent = l.name;
+      li.querySelector('.name div').insertAdjacentHTML('beforeend', cat);
+      li.querySelector('.name small').textContent = l.gtin + (l.markCode ? ' · DataMatrix' : '') + (l.group ? ' · группа ' + l.group : '');
+      li.querySelector('.qty span').textContent = l.qty;
+      li.querySelector('.sum').textContent = money(l.price * l.qty);
+      var b = li.querySelectorAll('.qty button');
+      if (l.markCode) { b[0].disabled = b[1].disabled = true; }
+      b[0].onclick = function () { if (state.busy) return; clearOutcome(); if (--l.qty <= 0) state.cart.splice(i, 1); render(); };
+      b[1].onclick = function () { if (state.busy) return; clearOutcome(); l.qty++; render(); };
+      li.querySelector('.del').onclick = function () { if (state.busy) return; clearOutcome(); state.cart.splice(i, 1); render(); };
+      ul.appendChild(li);
+    });
+    var n = state.cart.reduce(function (s, l) { return s + l.qty; }, 0);
+    $('count').textContent = n + ' ' + plural(n, ['позиция', 'позиции', 'позиций']);
+    $('total').textContent = money(total());
+    $('pay').disabled = state.busy || !state.cart.length;
+    $('pay').textContent = state.busy ? 'Идёт оплата…' : 'Оплата картой · ' + money(total());
+    if (!state.decline) $('hint-remove').style.display = '';
+  }
+  function plural(n, f) { var a = n % 10, b = n % 100; return f[a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? 1 : 2]; }
+
+  function renderShelf() {
+    var s = $('shelf'); s.innerHTML = '';
+    var all = Object.keys(Core.CATALOG).concat(Object.keys(custom));
+    all.forEach(function (g) {
+      var p = productByGtin(g); if (!p) return;
+      var b = document.createElement('button');
+      b.innerHTML = '<span></span><small></small>';
+      b.querySelector('span').textContent = p.name;
+      b.querySelector('small').textContent = money(p.price) + (p.cat ? ' · ' + NAMES[p.cat] : '');
+      b.onclick = function () { addProduct(p); };
+      s.appendChild(b);
+    });
+  }
+
+  // ---------------- Приложение покупателя ----------------
+  var CAT_HINT = { alcohol: 'пиво, вино, крепкое', tobacco: 'сигареты, стики, вейпы', energy: 'кофеин и таурин', lottery: 'билеты и моментальные игры' };
+  async function refreshUser() { state.user = await api('GET', 'api/users/' + USER); renderApp(); }
+  function renderApp() {
+    var u = state.user; if (!u) return;
+    $('savings').textContent = money(u.savings) + ' р.';
+    var t = $('toggles'); t.innerHTML = '';
+    Object.keys(CAT_HINT).forEach(function (k) {
+      var l = document.createElement('label'); l.className = 'toggle';
+      l.innerHTML = '<span></span><input type="checkbox">';
+      l.querySelector('span').innerHTML = (NAMES[k][0].toUpperCase() + NAMES[k].slice(1)) + '<small>' + CAT_HINT[k] + '</small>';
+      var cb = l.querySelector('input'); cb.checked = u.blocked.indexOf(k) !== -1;
+      cb.onchange = async function () {
+        var list = Object.keys(CAT_HINT).filter(function (c) { return c === k ? cb.checked : u.blocked.indexOf(c) !== -1; });
+        state.user = await api('PUT', 'api/users/' + USER + '/blocked', { blocked: list }); renderApp();
+      };
+      t.appendChild(l);
+    });
+    var h = $('hist'); h.innerHTML = '';
+    if (!u.history.length) h.innerHTML = '<li><span style="color:var(--muted)">Пока ничего</span></li>';
+    u.history.slice(0, 8).forEach(function (x) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span></span><span class="num"></span>';
+      li.children[0].textContent = new Date(x.time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + x.categories.map(function (c) { return NAMES[c]; }).join(', ');
+      li.children[1].textContent = '+' + money(x.amount);
+      h.appendChild(li);
+    });
+  }
+  function openSheet(on) { $('sheet').classList.toggle('show', on); $('sheet-bg').classList.toggle('show', on); if (on) refreshUser(); }
+  $('open-app').onclick = function () { openSheet(true); };
+  $('sheet-bg').onclick = function () { openSheet(false); };
+  $('cfg-tid').value = state.tid;
+  $('cfg-tid').onchange = function () {
+    state.tid = $('cfg-tid').value.trim() || 'T-1042'; store('mechta.tid', state.tid);
+    $('tid').textContent = state.tid; createModule();
+  };
+  $('reset').onclick = async function () {
+    await api('POST', 'api/demo/reset'); custom = {}; store('mechta.custom', custom);
+    state.cart = []; clearOutcome(); renderShelf(); render(); refreshUser(); toast('Демо сброшено');
+  };
+
+  var toastTimer;
+  function toast(text) {
+    var t = $('toast'); t.textContent = text; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+
+  // ---------------- Старт ----------------
+  localReset();
+  $('tid').textContent = state.tid;
+  render(); renderShelf();
+  detect().then(function () {
+    $('mode').textContent = useLocal ? 'Сервер в браузере' : 'Сервер: ' + new URL(apiBase).host;
+    $('mode').className = 'badge' + (useLocal ? '' : ' live');
+    return createModule();
+  }).then(refreshUser);
+})();
+</script>
+</body>
+</html>
